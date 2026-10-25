@@ -1,0 +1,17 @@
+# Example configuration for era5_download.py
+# Copy to config.toml, edit, then run:  python era5_download.py --config config.toml
+
+years     = ["2022-2024"]                 # single years or ranges
+months    = [11, 12, 1, 2, 3, 4]          # November to April
+levels    = [1000, 850, 700, 500, 300]    # hPa
+variables = ["specific_humidity", "u_component_of_wind", "v_component_of_wind"]
+
+product = "monthly"            # "monthly" or "monthly-by-hour"
+hours   = ["00", "06", "12", "18"]   # only used with "monthly-by-hour"
+
+# Optional sub-region [North, West, South, East]; remove for global data
+# area = [45, 40, 25, 65]
+
+split   = "year-level"         # "year-level", "year" or "none"
+out_dir = "data/era5"
+retries = 3

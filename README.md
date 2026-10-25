@@ -1,57 +1,98 @@
-# Extracting ERA5 Pressure Level Data Using CDS API
+# ERA5 Pressure-Level Downloader
 
-## Overview
-This script downloads ERA5 reanalysis pressure-level monthly mean data from the Climate Data Store (CDS) API. The data includes specific humidity, U and V wind components at multiple pressure levels (1000 hPa, 850 hPa, 700 hPa, 500 hPa, 300 hPa) for the years 2022, 2023, and 2024. The data is retrieved for months November through April and for specific times of the day. The results are saved as individual .nc (NetCDF) files.
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org)
+[![Data: ERA5](https://img.shields.io/badge/data-ERA5%20monthly%20means-1565C0)](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-pressure-levels-monthly-means)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
-## Code Explanation
-### **Step 1: Set the API Key and Initialize CDS Client**
-The CDS API key is specified in the .cdsapirc file. This key is necessary for authenticating requests to the CDS API.
-```python
-os.environ['CDSAPI_RC'] = r'C:\Users\Risa\.cdsapirc'
-c = cdsapi.Client()  # Initialize the CDS API client
+A small command-line tool to download **ERA5 monthly-mean data on pressure levels** (humidity, winds, temperature, geopotential and more) from the Copernicus Climate Data Store as NetCDF. Requests are split into one file per year and level, so long downloads queue well on the CDS and can be resumed after an interruption.
+
+## Features
+
+- Any years (`2022 2023` or ranges like `1990-2020`), months, pressure levels and variables
+- Monthly means, or monthly means **by hour of day** (`00`, `06`, `12`, `18` UTC, …)
+- Optional sub-region (`--area N W S E`) to keep files small
+- Skips files already downloaded; retries failed requests
+- `--dry-run` prints the exact CDS requests without downloading
+- Settings from the command line or a TOML/JSON config file
+
+## Installation
+
+```bash
+git clone https://github.com/RisaRezaei/era5-pressure-level-downloader.git
+cd era5-pressure-level-downloader
+pip install -r requirements.txt
 ```
-### **Step 2: Define Years and Pressure Levels**
-The script defines the list of years (2022, 2023, 2024) and pressure levels (1000, 850, 700, 500, 300) to loop over for data retrieval.
-```python
-years = ["2022", "2023", "2024"]
-pressure_levels = ["1000", "850", "700", "500", "300"]  # Separate request for each level
+
+### CDS credentials
+
+1. Create a free account at the [Climate Data Store](https://cds.climate.copernicus.eu) and accept the ERA5 licence on the dataset page.
+2. Put your API key in `~/.cdsapirc` (or set `CDSAPI_URL` / `CDSAPI_KEY`):
+
+```text
+url: https://cds.climate.copernicus.eu/api
+key: <your-personal-access-token>
 ```
-### **Step 3: Loop Through Years and Pressure Levels**
-The script iterates over each year and pressure level. For each combination, it requests data for specific variables (specific humidity, U and V wind components) at multiple time intervals throughout the day (00:00, 06:00, 12:00, 18:00).
-```python
-for year in years:
-    for level in pressure_levels:
-        print(f"Requesting data for {year}, pressure level {level} hPa...")
-        c.retrieve(
-            'reanalysis-era5-pressure-levels-monthly-means',
-            {
-                "variable": ["specific_humidity", "u_component_of_wind", "v_component_of_wind"],
-                "pressure_level": level,  # Request one pressure level at a time
-                "year": year,
-                "month": ["11", "12", "01", "02", "03", "04"],  # November to April
-                "day": [str(i).zfill(2) for i in range(1, 31)],  # Days 01-30
-                "time": ["00:00", "06:00", "12:00", "18:00"],
-                "format": "netcdf"
-            },
-            f'ERA5_{year}_{level}.nc'  # Save each file separately
-        )
-        print(f"Download complete for {year}, pressure level {level} hPa!\n")
+
+## Usage
+
+```bash
+# Nov–Apr 2022–2024, five levels, specific humidity + wind components
+python era5_download.py --years 2022-2024 --months 11 12 1 2 3 4 \
+    --levels 1000 850 700 500 300 \
+    --variables specific_humidity u_component_of_wind v_component_of_wind
+
+# Monthly means at 00/06/12/18 UTC over a sub-region
+python era5_download.py --product monthly-by-hour --hours 00 06 12 18 \
+    --area 45 40 25 65 --years 2023
+
+# From a config file (see config.example.toml), checking the requests first
+python era5_download.py --config config.example.toml --dry-run
+python era5_download.py --config config.example.toml
 ```
-### **Step 4: Save Files for Each Request**
-Each dataset is saved as a .nc (NetCDF) file with the name format ERA5_<year>_<level>.nc, allowing easy tracking of the different datasets.
 
-## Key Features
+### Options
 
-✔ Multiple Pressure Levels: Data is retrieved for a range of pressure levels (1000 hPa to 300 hPa), suitable for various atmospheric studies.
+| Option | Default | Description |
+|---|---|---|
+| `--years` | `2022-2024` | Years or ranges |
+| `--months` | `11 12 1 2 3 4` | Month numbers |
+| `--levels` | `1000 850 700 500 300` | Pressure levels (hPa) |
+| `--variables` | humidity + u/v wind | CDS variable names |
+| `--product` | `monthly` | `monthly` or `monthly-by-hour` |
+| `--hours` | `00 06 12 18` | UTC hours (only with `monthly-by-hour`) |
+| `--area N W S E` | global | Sub-region bounding box |
+| `--split` | `year-level` | One file per year+level, per `year`, or `none` |
+| `--out-dir` | `data/era5` | Output folder |
+| `--overwrite` | off | Re-download existing files |
+| `--dry-run` | off | Print requests only |
 
-✔ Time-Specific Data: Data is retrieved for multiple time intervals each day (00:00, 06:00, 12:00, 18:00) to capture variations in atmospheric conditions.
+## Output
 
-✔ Automated Download and Saving: The script automatically saves the data for each year and pressure level combination as a .nc file.
+```text
+data/era5/
+├── ERA5_monthly_2022_1000hPa.nc
+├── ERA5_monthly_2022_850hPa.nc
+└── …
+```
 
-## Potential Applications
-📍 Weather Forecasting: Useful for studying atmospheric conditions and their impact on weather forecasts.
+Open them with `xarray`:
 
-📍 Climate Research: Helps in understanding pressure-level variations in the atmosphere over multiple years.
+```python
+import xarray as xr
+ds = xr.open_mfdataset("data/era5/ERA5_monthly_*_850hPa.nc", combine="by_coords")
+```
 
-📍 Wind and Humidity Analysis: Wind and humidity data at different atmospheric levels are crucial for meteorological modeling and prediction.
+## Notes
+
+- Months are requested per calendar year, so a winter season such as Nov 2022 – Apr 2023 needs both 2022 and 2023 in `--years`.
+- The CDS queue can be slow for big requests; the per-year/per-level split keeps each request small.
+
+## Data and citation
+
+Hersbach, H., Bell, B., Berrisford, P., et al. (2023). ERA5 monthly averaged data on pressure levels from 1940 to present. Copernicus Climate Change Service (C3S) Climate Data Store. https://doi.org/10.24381/cds.6860a573
+
+## Author
+
+**Parisa Abbasalizadehrezaei** · [risarezaei.github.io](https://risarezaei.github.io)
+
+Released under the [MIT License](LICENSE).
