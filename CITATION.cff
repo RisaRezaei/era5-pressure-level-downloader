@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "ERA5 Pressure-Level Downloader"
+abstract: "Python command-line tool for downloading ERA5 monthly-mean pressure-level data from the Copernicus Climate Data Store, with config files, sub-regions, request splitting and resumable downloads."
+type: software
+authors:
+  - family-names: Abbasalizadehrezaei
+    given-names: Parisa
+    orcid: "https://orcid.org/0009-0009-5708-7673"
+repository-code: "https://github.com/RisaRezaei/era5-pressure-level-downloader"
+url: "https://risarezaei.github.io/tool.html?r=era5-pressure-level-downloader"
+license: MIT
+version: 1.0.0
+date-released: "2026-10-25"
