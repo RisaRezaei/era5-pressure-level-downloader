@@ -3,6 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org)
 [![Data: ERA5](https://img.shields.io/badge/data-ERA5%20monthly%20means-1565C0)](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-pressure-levels-monthly-means)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23646410.svg)](https://doi.org/10.5281/zenodo.23646410)
 
 A small command-line tool to download **ERA5 monthly-mean data on pressure levels** (humidity, winds, temperature, geopotential and more) from the Copernicus Climate Data Store as NetCDF. Requests are split into one file per year and level, so long downloads queue well on the CDS and can be resumed after an interruption.
 
@@ -90,6 +91,12 @@ ds = xr.open_mfdataset("data/era5/ERA5_monthly_*_850hPa.nc", combine="by_coords"
 ## Data and citation
 
 Hersbach, H., Bell, B., Berrisford, P., et al. (2023). ERA5 monthly averaged data on pressure levels from 1940 to present. Copernicus Climate Change Service (C3S) Climate Data Store. https://doi.org/10.24381/cds.6860a573
+
+## Cite this tool
+
+Abbasalizadehrezaei, P. (2026). *ERA5 Pressure-Level Downloader* (Version 1.0.0) [Software]. Zenodo. https://doi.org/10.5281/zenodo.23646410
+
+GitHub also offers a ready-made citation under **Cite this repository** (from [CITATION.cff](CITATION.cff)).
 
 ## Author
 

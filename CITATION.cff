@@ -10,5 +10,6 @@ authors:
 repository-code: "https://github.com/RisaRezaei/era5-pressure-level-downloader"
 url: "https://risarezaei.github.io/tool.html?r=era5-pressure-level-downloader"
 license: MIT
+doi: "10.5281/zenodo.23646410"
 version: 1.0.0
 date-released: "2026-10-25"
